@@ -6,13 +6,13 @@ replace github.com/jimsmart/schema v0.2.0 => github.com/cresta/jimsmart-schema v
 
 require (
 	github.com/bxcodec/faker/v3 v3.6.0
+	github.com/cresta/jimsmart-schema v0.2.1-cresta-2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/denisenkom/go-mssqldb v0.11.0
 	github.com/droundy/goopt v0.0.0-20170604162106-0b8effe182da
 	github.com/gobuffalo/packd v1.0.1
 	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/iancoleman/strcase v0.2.0
-	github.com/jimsmart/schema v0.2.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0
 	github.com/lib/pq v1.10.4
