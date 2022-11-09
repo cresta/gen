@@ -29,8 +29,8 @@ import (
 var (
 	sqlType          = goopt.String([]string{"--sqltype"}, "mysql", "sql database type such as [ mysql, mssql, postgres, sqlite, etc. ]")
 	sqlConnStr       = goopt.String([]string{"-c", "--connstr"}, "nil", "database connection string")
-	sqlDatabase      = goopt.String([]string{"-d", "--database"}, "nil", "Database to for connection. For Postgres, it's the table's schema name. Overrides schemas if also provided")
-	sqlSchemas       = goopt.String([]string{"-s", "--schemas"}, "nil", "If postgres, allows for multiple postgres schemas")
+	sqlDatabase      = goopt.String([]string{"-d", "--database"}, "nil", "Database to for connection")
+	sqlSchemas       = goopt.String([]string{"-s", "--schemas"}, "nil", "Filter on tables of given schemas (one or more komma separated)")
 	sqlTable         = goopt.String([]string{"-t", "--table"}, "", "Table to build struct from")
 	excludeSQLTables = goopt.String([]string{"-x", "--exclude"}, "", "Table(s) to exclude")
 	templateDir      = goopt.String([]string{"--templateDir"}, "", "Template Dir")
@@ -200,8 +200,8 @@ func main() {
 		return
 	}
 
-	if (sqlDatabase == nil || *sqlDatabase == "" || *sqlDatabase == "nil") && (sqlSchemas == nil || *sqlSchemas == "" || *sqlSchemas == "nil") {
-		fmt.Print(au.Red("Database and schemas can not be null\n\n"))
+	if sqlDatabase == nil || *sqlDatabase == "" || *sqlDatabase == "nil" {
+		fmt.Print(au.Red("Database can not be null\n\n"))
 		fmt.Println(goopt.Usage())
 		return
 	}
@@ -303,17 +303,15 @@ func main() {
 			return
 		}
 	}
-	// use multiple schemas if provided
-	if sqlSchemas == nil || *sqlSchemas == "" || *sqlSchemas == "nil" {
-		schemas := map[string]bool{*sqlDatabase: true}
-		tableInfos = dbmeta.LoadTableInfo(db, &schemas, dbTables, excludeDbTables, conf)
-	} else {
-		schemas := make(map[string]bool, 0)
+	// Filter on schemas when provided
+	var schemas map[string]bool
+	if len(*sqlSchemas) > 0 && *sqlSchemas != "nil" {
+		schemas = make(map[string]bool, 0)
 		for _, schema := range strings.Split(*sqlSchemas, ",") {
 			schemas[schema] = true
 		}
-		tableInfos = dbmeta.LoadTableInfo(db, &schemas, dbTables, excludeDbTables, conf)
 	}
+	tableInfos = dbmeta.LoadTableInfo(db, &schemas, dbTables, excludeDbTables, conf)
 
 	if len(tableInfos) == 0 {
 		fmt.Print(au.Red(fmt.Sprintf("No tables loaded\n")))
