@@ -29,7 +29,8 @@ import (
 var (
 	sqlType          = goopt.String([]string{"--sqltype"}, "mysql", "sql database type such as [ mysql, mssql, postgres, sqlite, etc. ]")
 	sqlConnStr       = goopt.String([]string{"-c", "--connstr"}, "nil", "database connection string")
-	sqlDatabase      = goopt.String([]string{"-d", "--database"}, "nil", "Database to for connection. For Postgres, it's the table's schema name.")
+	sqlDatabase      = goopt.String([]string{"-d", "--database"}, "nil", "Database to for connection")
+	sqlSchemas       = goopt.String([]string{"-s", "--schemas"}, "nil", "Filter on tables of given schemas (one or more komma separated)")
 	sqlTable         = goopt.String([]string{"-t", "--table"}, "", "Table to build struct from")
 	excludeSQLTables = goopt.String([]string{"-x", "--exclude"}, "", "Table(s) to exclude")
 	templateDir      = goopt.String([]string{"--templateDir"}, "", "Template Dir")
@@ -302,8 +303,15 @@ func main() {
 			return
 		}
 	}
-
-	tableInfos = dbmeta.LoadTableInfo(db, sqlDatabase, dbTables, excludeDbTables, conf)
+	// Filter on schemas when provided
+	var schemas map[string]bool
+	if len(*sqlSchemas) > 0 && *sqlSchemas != "nil" {
+		schemas = make(map[string]bool, 0)
+		for _, schema := range strings.Split(*sqlSchemas, ",") {
+			schemas[schema] = true
+		}
+	}
+	tableInfos = dbmeta.LoadTableInfo(db, &schemas, dbTables, excludeDbTables, conf)
 
 	if len(tableInfos) == 0 {
 		fmt.Print(au.Red(fmt.Sprintf("No tables loaded\n")))
